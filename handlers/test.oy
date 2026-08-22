@@ -1,0 +1,75 @@
+import asyncio
+from aiogram import Bot, Dispatcher, Router, F
+from aiogram.types import Message, CallbackQuery
+from aiogram.fsm.context import FSMContext
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
+# Токен и ID канала
+API_TOKEN = 'ВАШ_ТОКЕН'
+CHANNEL_ID = -1001234567890 
+
+bot = Bot(token=API_TOKEN)
+dp = Dispatcher()
+router = Router()
+
+# Простой список для временного хранения историй (в реальном проекте лучше использовать БД вроде SQLite)
+stories_queue = []
+
+# 1. Функция, которая отправляет историю в канал каждые 10 минут
+async def send_story_to_channel():
+    if stories_queue:
+        # Берём самую первую историю из очереди
+        story_text = stories_queue.pop(0) 
+        
+        try:
+            await bot.send_message(
+                chat_id=CHANNEL_ID,
+                text=story_text,
+                parse_mode="HTML"
+            )
+            print("История успешно отправлена в канал!")
+        except Exception as e:
+            print(f"Ошибка при отправке в канал: {e}")
+    else:
+        print("Очередь историй пуста, отправлять нечего.")
+
+# 2. Обработчик, когда пользователь подтверждает/отправляет историю
+@router.callback_query(F.data == "cmd_otpravit") # Замените на вашу callback_data кнопки отправки
+async def cmd_historyot(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    gender = data.get("gender", "Не указан")
+    age = data.get("age", "")
+    history = data.get("history", "")
+
+    # Собираем текст так, как вы хотели
+    text = (
+        f"<b>{gender[0]}{age}</b>. {history}\n\n"
+        f'<a href="https://t.me/pozornikiist">ПОЗОРНИКИ</a>'
+    )
+
+    # Добавляем историю в общую очередь
+    stories_queue.append(text)
+
+    await callback.message.answer("✅ Ваша история добавлена в очередь и скоро будет опубликована в канале!")
+    await callback.answer()
+    
+    # Очищаем состояние пользователя, чтобы он мог написать новую историю
+    await state.clear()
+
+async def main():
+    # Настраиваем планировщик
+    scheduler = AsyncIOScheduler()
+    
+    # Добавляем задачу: вызывать функцию send_story_to_channel каждые 10 минут
+    scheduler.add_job(send_story_to_channel, 'interval', minutes=10)
+    
+    # Запускаем планировщик
+    scheduler.start()
+
+    # Подключаем роутер и запускаем бота
+    dp.include_router(router)
+    await dp.drop_pending_updates()
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
