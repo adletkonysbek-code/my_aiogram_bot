@@ -8,7 +8,9 @@ from keyboards.keys import get_keyboard, get_inline, get_new_inline
 from aiogram.enums import ChatMemberStatus
 from config import bot
 
-CHANNEL_ID = -1003916620457
+CHANNEL_ID = -1004471778918
+CHANNEL_ID2 = -1003901159522
+
 
 router = Router()
 stories_queue = []
@@ -42,7 +44,7 @@ async def cmd_start(message: Message):
         "❗️4. Все события будут отложены на 4–5 дней (а возможно, и на более долгий срок)!\n"
         "<b>ВСЕ БУДЕТ АНОНИМНО</b>\n\n"
         "<b>Сначал подпишитесь на канал снизу!</b>\n"
-        f'<a href="https://t.me/pozornikiist">• ПОДПИСАТЬСЯ</a>'
+        f'<a href="https://t.me/pozornikistorya">• ПОДПИСАТЬСЯ</a>'
     )
 
     await message.answer(text, parse_mode="HTML", reply_markup=get_keyboard())
@@ -103,7 +105,7 @@ async def cmd_historyot(callback: CallbackQuery, state: FSMContext):
     history = data["history"]
 
     text = f"<b>{gender[0]}{age}</b>. {history}\n\n"
-    "<a href='https://t.me/pozornikiist'>ПОЗОРНИКИ</a>"
+    "<a href='https://t.me/pozornikistorya'>ПОЗОРНИКИ</a>"
 
     stories_queue.append(text)
 
@@ -118,7 +120,7 @@ async def send_story_to_channel(bot: Bot):
         
         try:
             await bot.send_message(
-                chat_id=CHANNEL_ID,
+                chat_id=CHANNEL_ID2,
                 text=story_text,
                 parse_mode="HTML"
             )
