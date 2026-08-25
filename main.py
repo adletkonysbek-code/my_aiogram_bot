@@ -11,7 +11,7 @@ dp.include_router(router)
 async def main():
 
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(send_story_to_channel, 'interval', minutes=45, args=[bot])
+    scheduler.add_job(send_story_to_channel, 'interval', minutes=10, args=[bot])
     scheduler.start()
 
     print("БОТ ЗАПУЩЕН!")
